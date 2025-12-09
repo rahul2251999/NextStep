@@ -340,7 +340,7 @@ function LoginPage() {
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       <div className="relative hidden lg:flex flex-col justify-between p-12" style={{ 
-        background: 'linear-gradient(to bottom right, rgba(14, 165, 233, 0.9), rgba(14, 165, 233, 0.8))',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
         color: '#ffffff'
       }}>
         <div className="relative z-20">
@@ -520,8 +520,8 @@ function LoginPage() {
       <div className="flex items-center justify-center p-8" style={{ backgroundColor: '#0a0a0a' }}>
         <div className="w-full max-w-[420px]">
           <div className="lg:hidden flex items-center justify-center gap-2 text-lg font-semibold mb-12">
-            <div className="size-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(14, 165, 233, 0.1)' }}>
-              <Sparkles className="size-4" style={{ color: '#0ea5e9' }} />
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)' }}>
+              <Sparkles className="size-4" style={{ color: '#818cf8' }} />
             </div>
             <span style={{ color: '#fafafa' }}>NextStep</span>
           </div>
@@ -608,7 +608,7 @@ function LoginPage() {
                     Remember for 30 days
                   </Label>
                 </div>
-                <a href="#" className="text-sm hover:underline font-medium" style={{ color: '#0ea5e9' }}>
+                <a href="#" className="text-sm hover:underline font-medium transition-colors" style={{ color: '#818cf8' }}>
                   Forgot password?
                 </a>
               </div>
@@ -624,9 +624,24 @@ function LoginPage() {
             )}
             <Button 
               type="submit" 
-              className="w-full h-12 text-base font-medium" 
+              className="w-full h-12 text-base font-medium transition-all duration-200" 
               size="lg" 
               disabled={isLoading}
+              style={{ 
+                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '10px',
+                boxShadow: '0 4px 20px rgba(99, 102, 241, 0.4)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = '0 6px 25px rgba(99, 102, 241, 0.5)'
+                e.currentTarget.style.transform = 'translateY(-1px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = '0 4px 20px rgba(99, 102, 241, 0.4)'
+                e.currentTarget.style.transform = 'translateY(0)'
+              }}
             >
               {isLoading ? (isLogin ? "Signing in..." : "Creating account...") : (isLogin ? "Log in" : "Sign up")}
             </Button>

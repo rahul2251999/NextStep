@@ -1,5 +1,5 @@
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 import json
 
@@ -7,31 +7,49 @@ load_dotenv()
 
 class LLMService:
     def __init__(self):
-        self.provider = os.getenv("LLM_PROVIDER", "groq").lower()
-        self.groq_api_key = os.getenv("GROQ_API_KEY")
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
-        self.huggingface_api_key = os.getenv("HUGGINGFACE_API_KEY")
+        # Keep env vars as fallbacks
+        self.default_provider = os.getenv("LLM_PROVIDER", "openai").lower()
+        self.default_groq_key = os.getenv("GROQ_API_KEY")
+        self.default_openai_key = os.getenv("OPENAI_API_KEY")
+        self.default_anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        self.default_gemini_key = os.getenv("GEMINI_API_KEY")
+        self.default_huggingface_key = os.getenv("HUGGINGFACE_API_KEY")
     
-    async def generate_text(self, prompt: str, system_prompt: str = None, max_tokens: int = 1000) -> str:
+    async def generate_text(
+        self, 
+        prompt: str, 
+        system_prompt: str = None, 
+        max_tokens: int = 1000,
+        provider: str = None,
+        api_key: str = None,
+        model: str = None
+    ) -> str:
         """Generate text using the configured LLM provider."""
-        if self.provider == "groq":
-            return await self._generate_with_groq(prompt, system_prompt, max_tokens)
-        elif self.provider == "openai":
-            return await self._generate_with_openai(prompt, system_prompt, max_tokens)
-        elif self.provider == "huggingface":
-            return await self._generate_with_huggingface(prompt, system_prompt, max_tokens)
+        current_provider = (provider or self.default_provider).lower()
+        
+        if current_provider == "groq":
+            return await self._generate_with_groq(prompt, system_prompt, max_tokens, api_key, model)
+        elif current_provider == "openai":
+            return await self._generate_with_openai(prompt, system_prompt, max_tokens, api_key, model)
+        elif current_provider == "anthropic":
+            return await self._generate_with_anthropic(prompt, system_prompt, max_tokens, api_key, model)
+        elif current_provider == "gemini":
+            return await self._generate_with_gemini(prompt, system_prompt, max_tokens, api_key, model)
+        elif current_provider == "huggingface":
+            return await self._generate_with_huggingface(prompt, system_prompt, max_tokens, api_key, model)
         else:
-            raise ValueError(f"Unknown LLM provider: {self.provider}")
+            raise ValueError(f"Unknown LLM provider: {current_provider}")
     
-    async def _generate_with_groq(self, prompt: str, system_prompt: str = None, max_tokens: int = 1000) -> str:
+    async def _generate_with_groq(self, prompt: str, system_prompt: str = None, max_tokens: int = 1000, api_key: str = None, model: str = None) -> str:
         """Generate text using Groq API."""
         try:
             from groq import Groq
             
-            if not self.groq_api_key:
+            key = api_key or self.default_groq_key
+            if not key:
                 raise ValueError("GROQ_API_KEY not set")
             
-            client = Groq(api_key=self.groq_api_key)
+            client = Groq(api_key=key)
             
             messages = []
             if system_prompt:
@@ -39,7 +57,7 @@ class LLMService:
             messages.append({"role": "user", "content": prompt})
             
             response = client.chat.completions.create(
-                model="llama-3-8b-8192",  # or llama-3-70b-8192 for better quality
+                model=model or "llama-3-70b-8192",
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=0.7,
@@ -49,15 +67,16 @@ class LLMService:
         except Exception as e:
             raise RuntimeError(f"Groq API error: {str(e)}")
     
-    async def _generate_with_openai(self, prompt: str, system_prompt: str = None, max_tokens: int = 1000) -> str:
+    async def _generate_with_openai(self, prompt: str, system_prompt: str = None, max_tokens: int = 1000, api_key: str = None, model: str = None) -> str:
         """Generate text using OpenAI API."""
         try:
             from openai import OpenAI
             
-            if not self.openai_api_key:
+            key = api_key or self.default_openai_key
+            if not key:
                 raise ValueError("OPENAI_API_KEY not set")
             
-            client = OpenAI(api_key=self.openai_api_key)
+            client = OpenAI(api_key=key)
             
             messages = []
             if system_prompt:
@@ -65,7 +84,7 @@ class LLMService:
             messages.append({"role": "user", "content": prompt})
             
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model=model or "gpt-4-turbo-preview",
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=0.7,
@@ -74,23 +93,80 @@ class LLMService:
             return response.choices[0].message.content
         except Exception as e:
             raise RuntimeError(f"OpenAI API error: {str(e)}")
+
+    async def _generate_with_anthropic(self, prompt: str, system_prompt: str = None, max_tokens: int = 1000, api_key: str = None, model: str = None) -> str:
+        """Generate text using Anthropic API."""
+        try:
+            import anthropic
+            
+            key = api_key or self.default_anthropic_key
+            if not key:
+                raise ValueError("ANTHROPIC_API_KEY not set")
+            
+            client = anthropic.Anthropic(api_key=key)
+            
+            messages = [{"role": "user", "content": prompt}]
+            
+            response = client.messages.create(
+                model=model or "claude-3-opus-20240229",
+                max_tokens=max_tokens,
+                temperature=0.7,
+                system=system_prompt,
+                messages=messages
+            )
+            
+            return response.content[0].text
+        except Exception as e:
+            raise RuntimeError(f"Anthropic API error: {str(e)}")
+
+    async def _generate_with_gemini(self, prompt: str, system_prompt: str = None, max_tokens: int = 1000, api_key: str = None, model: str = None) -> str:
+        """Generate text using Google Gemini API."""
+        try:
+            import google.generativeai as genai
+            
+            key = api_key or self.default_gemini_key
+            if not key:
+                raise ValueError("GEMINI_API_KEY not set")
+            
+            genai.configure(api_key=key)
+            
+            # Gemini doesn't have system prompts in the same way for all models, but we can prepend it
+            full_prompt = prompt
+            if system_prompt:
+                full_prompt = f"{system_prompt}\n\n{prompt}"
+            
+            model_name = model or "gemini-pro"
+            gemini_model = genai.GenerativeModel(model_name)
+            
+            response = gemini_model.generate_content(
+                full_prompt,
+                generation_config=genai.types.GenerationConfig(
+                    max_output_tokens=max_tokens,
+                    temperature=0.7,
+                )
+            )
+            
+            return response.text
+        except Exception as e:
+            raise RuntimeError(f"Gemini API error: {str(e)}")
     
-    async def _generate_with_huggingface(self, prompt: str, system_prompt: str = None, max_tokens: int = 1000) -> str:
+    async def _generate_with_huggingface(self, prompt: str, system_prompt: str = None, max_tokens: int = 1000, api_key: str = None, model: str = None) -> str:
         """Generate text using HuggingFace Inference API."""
         try:
             import httpx
             
-            if not self.huggingface_api_key:
+            key = api_key or self.default_huggingface_key
+            if not key:
                 raise ValueError("HUGGINGFACE_API_KEY not set")
             
-            model = "mistralai/Mistral-7B-Instruct-v0.2"  # Free model
+            model_id = model or "mistralai/Mixtral-8x7B-Instruct-v0.1"
             
             full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
             
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"https://api-inference.huggingface.co/models/{model}",
-                    headers={"Authorization": f"Bearer {self.huggingface_api_key}"},
+                    f"https://api-inference.huggingface.co/models/{model_id}",
+                    headers={"Authorization": f"Bearer {key}"},
                     json={
                         "inputs": full_prompt,
                         "parameters": {
@@ -117,6 +193,9 @@ class LLMService:
         original_bullet: str,
         job_requirements: List[str],
         job_title: str = None,
+        provider: str = None,
+        api_key: str = None,
+        model: str = None
     ) -> str:
         """Improve a resume bullet point following STAR/RIC format."""
         system_prompt = """You are an expert resume writer and career coach. You rewrite resume bullet points to highlight accomplishments using the Result-Impact-Context (RIC) format, similar to STAR method.
@@ -146,7 +225,14 @@ Original bullet: "{original_bullet}"
 Provide only the improved bullet point, nothing else. Do not add explanations or markdown formatting."""
 
         try:
-            improved = await self.generate_text(prompt, system_prompt, max_tokens=200)
+            improved = await self.generate_text(
+                prompt, 
+                system_prompt, 
+                max_tokens=200,
+                provider=provider,
+                api_key=api_key,
+                model=model
+            )
             # Clean up the response
             improved = improved.strip().strip('"').strip("'")
             # Remove any markdown or extra formatting
@@ -164,6 +250,9 @@ Provide only the improved bullet point, nothing else. Do not add explanations or
         job_title: str,
         company: str,
         recipient_name: str = None,
+        provider: str = None,
+        api_key: str = None,
+        model: str = None
     ) -> str:
         """Generate a LinkedIn message for a recruiter."""
         system_prompt = """You are an assistant that drafts brief LinkedIn messages to recruiters. The message should be:
@@ -186,7 +275,14 @@ Job: {job_title} at {company}
 Write a brief, authentic message expressing interest in the role and highlighting relevant experience. Keep it conversational and professional."""
 
         try:
-            message = await self.generate_text(prompt, system_prompt, max_tokens=300)
+            message = await self.generate_text(
+                prompt, 
+                system_prompt, 
+                max_tokens=300,
+                provider=provider,
+                api_key=api_key,
+                model=model
+            )
             # Ensure it starts with greeting
             if not message.startswith(greeting.split(",")[0]):
                 message = f"{greeting}\n\n{message}"
@@ -202,6 +298,9 @@ Write a brief, authentic message expressing interest in the role and highlightin
         contact_name: str,
         contact_role: str = None,
         connection: str = None,
+        provider: str = None,
+        api_key: str = None,
+        model: str = None
     ) -> str:
         """Generate a LinkedIn message asking for a referral."""
         system_prompt = """You are an assistant that drafts LinkedIn messages asking for referrals. The message should be:
@@ -242,7 +341,14 @@ Write a brief, friendly message that:
 Keep it genuine and appreciative."""
 
         try:
-            message = await self.generate_text(prompt, system_prompt, max_tokens=400)
+            message = await self.generate_text(
+                prompt, 
+                system_prompt, 
+                max_tokens=400,
+                provider=provider,
+                api_key=api_key,
+                model=model
+            )
             return message.strip()
         except Exception as e:
             raise RuntimeError(f"Failed to generate referral message: {str(e)}")
@@ -250,4 +356,3 @@ Keep it genuine and appreciative."""
 
 # Singleton instance
 llm_service = LLMService()
-

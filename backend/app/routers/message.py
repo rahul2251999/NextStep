@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from app.database import get_db
 from app.auth import verify_token
-from app.models import User, Resume, Job
+from app.models import User, Resume, Job, UserSettings
 from app.services.llm_service import llm_service
 
 router = APIRouter()
@@ -15,6 +15,14 @@ class RecruiterMessageRequest(BaseModel):
     job_id: int
     recipient_name: str = None
     recipient_email: str = None
+
+
+class ReferralMessageRequest(BaseModel):
+    resume_id: int
+    job_id: int
+    contact_name: str
+    contact_role: str = None
+    connection: str = None
 
 
 class MessageResponse(BaseModel):
@@ -56,12 +64,21 @@ async def generate_recruiter_message(
     if parsed_data.get("experience_count"):
         candidate_summary += f" ({parsed_data['experience_count']} positions)"
     
+    # Get user settings
+    settings = db.query(UserSettings).filter(UserSettings.user_id == user.user_id).first()
+    provider = settings.ai_provider if settings else None
+    api_key = settings.api_key if settings else None
+    model = settings.model_preference if settings else None
+
     try:
         message = await llm_service.generate_recruiter_message(
             candidate_summary=candidate_summary,
             job_title=job.title,
             company=job.company or "the company",
             recipient_name=request.recipient_name,
+            provider=provider,
+            api_key=api_key,
+            model=model
         )
         
         # Send email if recipient email is provided
@@ -120,4 +137,65 @@ def send_email(to_email: str, subject: str, body: str, from_email: str = None) -
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
         return False
+
+
+@router.post("/referral", response_model=MessageResponse)
+async def generate_referral_message(
+    request: ReferralMessageRequest,
+    current_user: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Generate a LinkedIn message asking for a referral."""
+    # Get user
+    user = db.query(User).filter(User.email == current_user["email"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get resume and job
+    resume = db.query(Resume).filter(
+        Resume.resume_id == request.resume_id,
+        Resume.user_id == user.user_id
+    ).first()
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    
+    job = db.query(Job).filter(
+        Job.job_id == request.job_id,
+        Job.user_id == user.user_id
+    ).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Create candidate summary from resume
+    parsed_data = resume.parsed_json or {}
+    candidate_summary = f"Professional with experience in {parsed_data.get('sections', {}).get('experience', 'various roles')[:200]}"
+    
+    if parsed_data.get("experience_count"):
+        candidate_summary += f" ({parsed_data['experience_count']} positions)"
+    
+    # Get user settings
+    settings = db.query(UserSettings).filter(UserSettings.user_id == user.user_id).first()
+    provider = settings.ai_provider if settings else None
+    api_key = settings.api_key if settings else None
+    model = settings.model_preference if settings else None
+
+    try:
+        message = await llm_service.generate_referral_message(
+            candidate_summary=candidate_summary,
+            job_title=job.title,
+            company=job.company or "the company",
+            contact_name=request.contact_name,
+            contact_role=request.contact_role,
+            connection=request.connection,
+            provider=provider,
+            api_key=api_key,
+            model=model
+        )
+        
+        return MessageResponse(message=message, email_sent=False)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate message: {str(e)}"
+        )
 

@@ -6,7 +6,7 @@ from datetime import datetime
 
 from app.database import get_db
 from app.auth import verify_token
-from app.models import User, Resume, Bullet, ResumeEmbedding
+from app.models import User, Resume, Bullet, ResumeEmbedding, UserSettings
 from app.utils.resume_parser import parse_resume
 from app.services.storage_service import storage_service
 from app.services.embedding_service import embedding_service
@@ -20,13 +20,45 @@ class ResumeUploadResponse(BaseModel):
     parse_summary: dict
 
 
+class ResumeListItem(BaseModel):
+    resume_id: int
+    file_path: str
+    uploaded_at: str
+    name: str | None = None
+
+
+@router.get("/list", response_model=List[ResumeListItem])
+async def list_resumes(
+    current_user: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Get all resumes for the current user."""
+    user = db.query(User).filter(User.email == current_user["email"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    resumes = db.query(Resume).filter(Resume.user_id == user.user_id).order_by(Resume.uploaded_at.desc()).all()
+    
+    result = []
+    for resume in resumes:
+        parsed_data = resume.parsed_json or {}
+        result.append(ResumeListItem(
+            resume_id=resume.resume_id,
+            file_path=resume.file_path,
+            uploaded_at=resume.uploaded_at.isoformat() if resume.uploaded_at else "",
+            name=parsed_data.get("name") or f"Resume {resume.resume_id}",
+        ))
+    
+    return result
+
+
 @router.post("/upload", response_model=ResumeUploadResponse)
 async def upload_resume(
     resume: UploadFile = File(...),
     current_user: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
-    """Upload and parse a resume file."""
+    """Upload and parse a resume file. Maximum 5 resumes per user."""
     # Verify file type
     if not resume.filename:
         raise HTTPException(status_code=400, detail="No file provided")
@@ -57,6 +89,14 @@ async def upload_resume(
             db.add(user)
             db.commit()
             db.refresh(user)
+        
+        # Check resume limit (max 5)
+        existing_resumes_count = db.query(Resume).filter(Resume.user_id == user.user_id).count()
+        if existing_resumes_count >= 5:
+            raise HTTPException(
+                status_code=400,
+                detail="Maximum 5 resumes allowed. Please delete an existing resume before uploading a new one."
+            )
         
         # Generate unique file path
         file_path = f"{user.user_id}/{uuid.uuid4()}_{resume.filename}"
@@ -185,6 +225,12 @@ async def improve_resume(
     num_to_improve = max(1, int(len(bullets) * (ai_content_percentage / 100)))
     bullets_to_improve = bullets[:num_to_improve]
     
+    # Get user settings
+    settings = db.query(UserSettings).filter(UserSettings.user_id == user.user_id).first()
+    provider = settings.ai_provider if settings else None
+    api_key = settings.api_key if settings else None
+    model = settings.model_preference if settings else None
+
     improvements = []
     for bullet in bullets_to_improve:
         try:
@@ -192,6 +238,9 @@ async def improve_resume(
                 bullet.text,
                 job_requirements,
                 job.title,
+                provider=provider,
+                api_key=api_key,
+                model=model
             )
             improvements.append({
                 "original_bullet": bullet.text,
@@ -212,7 +261,13 @@ async def improve_resume(
         try:
             # This is a simplified version - in production, be more careful
             new_bullet_prompt = f"Generate a professional resume bullet point for someone with experience in {', '.join(job_requirements[:3])}. Keep it realistic and professional."
-            new_bullet = await llm_service.generate_text(new_bullet_prompt, max_tokens=100)
+            new_bullet = await llm_service.generate_text(
+                new_bullet_prompt, 
+                max_tokens=100,
+                provider=provider,
+                api_key=api_key,
+                model=model
+            )
             if new_bullet:
                 new_bullets.append(new_bullet.strip())
         except Exception as e:
