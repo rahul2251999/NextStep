@@ -38,6 +38,7 @@ jobs:
         working-directory: ./frontend
         env:
           NODE_ENV: production
+          NEXT_PUBLIC_BASE_PATH: /NextStep
         run: npm run build
 
       - name: Setup Pages
