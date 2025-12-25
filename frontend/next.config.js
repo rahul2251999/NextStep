@@ -8,17 +8,8 @@ const nextConfig = {
   },
   trailingSlash: true,
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '/NextStep',
-  // Skip API routes during static export (they won't work on GitHub Pages anyway)
-  exportPathMap: async function (defaultPathMap) {
-    // Filter out API routes
-    const paths = { ...defaultPathMap }
-    Object.keys(paths).forEach((path) => {
-      if (path.startsWith('/api/')) {
-        delete paths[path]
-      }
-    })
-    return paths
-  },
+  // Note: API routes in pages/api/ will be ignored during static export
+  // They won't work on GitHub Pages (static hosting only)
 }
 
 module.exports = nextConfig
