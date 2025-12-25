@@ -14,8 +14,8 @@ class EmbeddingService:
         return cls._instance
     
     def __init__(self):
-        if self._model is None:
-            self._load_model()
+        pass
+
     
     def _load_model(self):
         """Load the embedding model. Uses E5-large by default."""

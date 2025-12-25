@@ -4,6 +4,8 @@ Run this to create tables and enable pgvector extension.
 """
 from app.database import engine, Base
 from sqlalchemy import text
+import app.models  # Import models to register them with Base
+
 
 def init_db():
     """Initialize database with tables and pgvector extension."""

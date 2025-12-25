@@ -4,54 +4,26 @@
 
 @layer base {
   :root {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 200 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 200 100% 50%;
-    --radius: 0.5rem;
-  }
-
-  /* Fallback for browsers that don't support CSS variables */
-  body {
-    background-color: #0a0a0a;
-    color: #fafafa;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 200 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 200 100% 50%;
+    --background: 230 25% 2%;
+    --foreground: 210 20% 98%;
+    --card: 230 25% 4%;
+    --card-foreground: 210 20% 98%;
+    --popover: 230 25% 2%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 25 100% 50%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 230 20% 15%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 230 20% 12%;
+    --muted-foreground: 215 15% 65%;
+    --accent: 230 20% 15%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 230 20% 15%;
+    --input: 230 20% 15%;
+    --ring: 25 100% 50%;
+    --radius: 0.75rem;
   }
 }
 
@@ -59,29 +31,45 @@
   * {
     @apply border-border;
   }
+
   html {
-    background-color: #0a0a0a;
-    min-height: 100%;
+    @apply scroll-smooth;
+    background-color: hsl(var(--background));
   }
+
   body {
-    @apply bg-background text-foreground;
-    background-color: #0a0a0a;
-    color: #fafafa;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
+    @apply bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl shadow-black/40;
   }
-  
-  .bg-grid-white\/\[0\.05\] {
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+
+  .glass-dark {
+    @apply bg-black/40 backdrop-blur-xl border border-white/5 shadow-2xl;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-white via-white/90 to-white/70;
+  }
+
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-orange-400 via-amber-400 to-orange-500;
   }
 }
 
-
+.nebula-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(0, 0, 0, 0.5) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(10, 10, 15, 1) 0%, rgba(2, 2, 4, 1) 100%);
+}

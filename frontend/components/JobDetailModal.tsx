@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Briefcase, Building, FileText, MessageSquare, Mail, FileEdit, TrendingUp, Copy, Check } from "lucide-react"
+import { X, Briefcase, Building, FileText, MessageSquare, Mail, FileEdit, TrendingUp, Copy, Check, Sparkles, AlertCircle, ChevronDown } from "lucide-react"
 import axios from "axios"
 
 interface JobDetailModalProps {
@@ -30,6 +30,14 @@ export default function JobDetailModal({ jobId, isOpen, onClose, onUpdate }: Job
   const [jobDetail, setJobDetail] = useState<JobDetail | null>(null)
   const [activeTab, setActiveTab] = useState<"jd" | "linkedin" | "email" | "resume">("jd")
   const [copied, setCopied] = useState<string | null>(null)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
+
+  const statusOptions = [
+    { value: "applied", label: "Applied" },
+    { value: "interviewing", label: "Interviewing" },
+    { value: "offer_received", label: "Offer Received" },
+    { value: "rejected", label: "Rejected" },
+  ]
 
   useEffect(() => {
     if (isOpen && jobId) {
@@ -68,89 +76,135 @@ export default function JobDetailModal({ jobId, isOpen, onClose, onUpdate }: Job
     }
   }
 
+  const handleStatusChange = async (newStatus: string) => {
+    if (!jobDetail || newStatus === jobDetail.application_status) return
+
+    setUpdatingStatus(true)
+    try {
+      const response = await axios.patch(
+        `/api/job/${jobId}/status`,
+        { application_status: newStatus },
+        { timeout: 10000 }
+      )
+
+      // Update local state
+      setJobDetail({ ...jobDetail, application_status: newStatus })
+      
+      // Refresh the job list
+      onUpdate()
+    } catch (error: any) {
+      console.error("Failed to update status", error)
+      alert(error.response?.data?.error || "Failed to update status. Please try again.")
+    } finally {
+      setUpdatingStatus(false)
+    }
+  }
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div
-        className="bg-background rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+        className="glass-dark rounded-[2.5rem] shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-fade-in-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b">
+        <div className="flex items-start justify-between p-8 border-b border-white/5">
           <div className="flex-1">
             {loading ? (
-              <div className="h-6 bg-muted animate-pulse rounded w-1/2"></div>
+              <div className="space-y-3">
+                <div className="h-8 bg-white/5 animate-pulse rounded-xl w-1/2"></div>
+                <div className="h-4 bg-white/5 animate-pulse rounded-lg w-1/3"></div>
+              </div>
             ) : jobDetail ? (
               <>
-                <h2 className="text-2xl font-bold text-foreground mb-1">{jobDetail.title}</h2>
-                <div className="flex items-center gap-4 text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Building className="h-4 w-4" />
-                    <span>{jobDetail.company || "No company"}</span>
+                <h2 className="text-3xl font-bold text-white mb-2">{jobDetail.title}</h2>
+                <div className="flex flex-wrap items-center gap-6 text-slate-400">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-white/5">
+                      <Building className="h-4 w-4" />
+                    </div>
+                    <span className="font-semibold text-slate-300">{jobDetail.company || "Unknown Enterprise"}</span>
                   </div>
                   {jobDetail.match_score !== null && (
-                    <div className="flex items-center gap-1">
-                      <TrendingUp className="h-4 w-4" />
-                      <span className={`font-medium ${
-                        jobDetail.match_score >= 80 ? "text-green-500" :
-                        jobDetail.match_score >= 60 ? "text-yellow-500" :
-                        "text-red-500"
-                      }`}>
-                        {jobDetail.match_score}% Match
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-400">
+                        <TrendingUp className="h-4 w-4" />
+                      </div>
+                      <span className="font-bold text-orange-400">
+                        {jobDetail.match_score}% Optimization
                       </span>
                     </div>
                   )}
+                  {/* Status Dropdown */}
+                  <div className="relative">
+                    <select
+                      value={jobDetail.application_status}
+                      onChange={(e) => handleStatusChange(e.target.value)}
+                      disabled={updatingStatus}
+                      className="appearance-none bg-black/60 border border-white/20 rounded-lg px-4 py-2 pr-8 text-sm text-white hover:border-white/30 focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {statusOptions.map((option) => (
+                        <option key={option.value} value={option.value} className="bg-black text-white">
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                  </div>
                 </div>
               </>
             ) : null}
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            className="p-2 hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-white"
           >
-            <X className="h-5 w-5" />
+            <X className="h-6 w-6" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="border-b flex gap-1 px-6">
+        <div className="border-b border-white/5 flex gap-2 px-8 py-2">
           {[
-            { id: "jd", label: "Job Description", icon: FileText },
-            { id: "linkedin", label: "LinkedIn Message", icon: MessageSquare },
+            { id: "jd", label: "Intel", icon: FileText },
+            { id: "linkedin", label: "InMail", icon: MessageSquare },
             { id: "email", label: "Email", icon: Mail },
-            { id: "resume", label: "Resume Suggestions", icon: FileEdit },
+            { id: "resume", label: "Payload", icon: FileEdit },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-3 border-b-2 transition-colors flex items-center gap-2 ${
-                activeTab === tab.id
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-6 py-4 rounded-2xl transition-all flex items-center gap-3 text-sm font-bold ${activeTab === tab.id
+                ? "bg-white/5 text-white shadow-inner"
+                : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.02]"
+                }`}
             >
-              <tab.icon className="h-4 w-4" />
+              <tab.icon className={`h-4 w-4 ${activeTab === tab.id ? "text-orange-400" : ""}`} />
               {tab.label}
             </button>
           ))}
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
           {loading ? (
-            <div className="space-y-4">
-              <div className="h-4 bg-muted animate-pulse rounded w-full"></div>
-              <div className="h-4 bg-muted animate-pulse rounded w-5/6"></div>
-              <div className="h-4 bg-muted animate-pulse rounded w-4/6"></div>
+            <div className="space-y-6">
+              <div className="h-4 bg-white/5 animate-pulse rounded-lg w-full"></div>
+              <div className="h-4 bg-white/5 animate-pulse rounded-lg w-5/6"></div>
+              <div className="h-4 bg-white/5 animate-pulse rounded-lg w-4/6"></div>
+              <div className="h-4 bg-white/5 animate-pulse rounded-lg w-full"></div>
             </div>
           ) : jobDetail ? (
-            <>
+            <div className="animate-fade-in-up">
               {/* Job Description Tab */}
               {activeTab === "jd" && (
-                <div className="space-y-4">
-                  <div className="prose dark:prose-invert max-w-none">
-                    <div className="whitespace-pre-wrap text-foreground">
+                <div className="space-y-6">
+                  <div className="prose prose-invert max-w-none">
+                    <div className="whitespace-pre-wrap text-slate-300 leading-relaxed font-medium">
                       {jobDetail.description_text}
                     </div>
                   </div>
@@ -159,28 +213,31 @@ export default function JobDetailModal({ jobId, isOpen, onClose, onUpdate }: Job
 
               {/* LinkedIn Message Tab */}
               {activeTab === "linkedin" && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {jobDetail.recruiter_message ? (
-                    <div className="relative">
-                      <div className="bg-card border rounded-lg p-4 whitespace-pre-wrap">
+                    <div className="relative group">
+                      <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-8 whitespace-pre-wrap text-slate-300 leading-relaxed font-medium transition-all group-hover:border-white/10 group-hover:bg-white/[0.04]">
                         {jobDetail.recruiter_message}
                       </div>
                       <button
                         onClick={() => copyToClipboard(jobDetail.recruiter_message!, "linkedin")}
-                        className="absolute top-2 right-2 p-2 hover:bg-muted rounded transition-colors"
+                        className="absolute top-4 right-4 p-3 bg-black/40 hover:bg-black/60 rounded-xl transition-all border border-white/5 backdrop-blur-md"
+                        title="Copy to clipboard"
                       >
                         {copied === "linkedin" ? (
-                          <Check className="h-4 w-4 text-green-500" />
+                          <Check className="h-5 w-5 text-emerald-400" />
                         ) : (
-                          <Copy className="h-4 w-4" />
+                          <Copy className="h-5 w-5 text-slate-400" />
                         )}
                       </button>
                     </div>
                   ) : (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>LinkedIn message not generated yet.</p>
-                      <p className="text-sm mt-2">Generate one from the resume improvement section.</p>
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                      <div className="size-16 rounded-3xl bg-white/5 flex items-center justify-center mb-6">
+                        <MessageSquare className="h-8 w-8 text-slate-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">No Intel Generated</h3>
+                      <p className="text-slate-500 max-w-sm">LinkedIn outreach templates are generated during the analysis phase. Head to settings to ensure your API keys is active.</p>
                     </div>
                   )}
                 </div>
@@ -188,28 +245,31 @@ export default function JobDetailModal({ jobId, isOpen, onClose, onUpdate }: Job
 
               {/* Email Tab */}
               {activeTab === "email" && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {jobDetail.recruiter_message ? (
-                    <div className="relative">
-                      <div className="bg-card border rounded-lg p-4 whitespace-pre-wrap">
+                    <div className="relative group">
+                      <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-8 whitespace-pre-wrap text-slate-300 leading-relaxed font-medium transition-all group-hover:border-white/10 group-hover:bg-white/[0.04]">
                         {jobDetail.recruiter_message}
                       </div>
                       <button
                         onClick={() => copyToClipboard(jobDetail.recruiter_message!, "email")}
-                        className="absolute top-2 right-2 p-2 hover:bg-muted rounded transition-colors"
+                        className="absolute top-4 right-4 p-3 bg-black/40 hover:bg-black/60 rounded-xl transition-all border border-white/5 backdrop-blur-md"
+                        title="Copy to clipboard"
                       >
                         {copied === "email" ? (
-                          <Check className="h-4 w-4 text-green-500" />
+                          <Check className="h-5 w-5 text-emerald-400" />
                         ) : (
-                          <Copy className="h-4 w-4" />
+                          <Copy className="h-5 w-5 text-slate-400" />
                         )}
                       </button>
                     </div>
                   ) : (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Email template not generated yet.</p>
-                      <p className="text-sm mt-2">Generate one from the resume improvement section.</p>
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                      <div className="size-16 rounded-3xl bg-white/5 flex items-center justify-center mb-6">
+                        <Mail className="h-8 w-8 text-slate-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">No Template Found</h3>
+                      <p className="text-slate-500 max-w-sm">Direct outreach templates can be generated in the optimization dashboard.</p>
                     </div>
                   )}
                 </div>
@@ -217,45 +277,55 @@ export default function JobDetailModal({ jobId, isOpen, onClose, onUpdate }: Job
 
               {/* Resume Suggestions Tab */}
               {activeTab === "resume" && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {jobDetail.resume_suggestions ? (
-                    <div>
+                    <div className="grid gap-6">
                       {jobDetail.resume_suggestions.improvements && Array.isArray(jobDetail.resume_suggestions.improvements) ? (
-                        <div className="space-y-4">
-                          {jobDetail.resume_suggestions.improvements.map((improvement: any, idx: number) => (
-                            <div key={idx} className="bg-card border rounded-lg p-4">
-                              <div className="mb-2">
-                                <p className="text-sm text-muted-foreground line-through mb-1">
-                                  Original: {improvement.original_bullet}
-                                </p>
-                                <p className="font-medium text-foreground">
-                                  Improved: {improvement.improved_bullet}
-                                </p>
+                        jobDetail.resume_suggestions.improvements.map((improvement: any, idx: number) => (
+                          <div key={idx} className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 hover:bg-white/[0.04] transition-all group">
+                            <div className="flex gap-4">
+                              <div className="size-10 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
+                                <Sparkles className="h-5 w-5 text-orange-400" />
+                              </div>
+                              <div className="space-y-3">
+                                <div className="p-4 bg-red-500/5 rounded-2xl border border-red-500/10">
+                                  <p className="text-sm text-red-500 line-through font-medium opacity-60">
+                                    {improvement.original_bullet}
+                                  </p>
+                                </div>
+                                <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
+                                  <p className="font-bold text-white group-hover:text-emerald-400 transition-colors">
+                                    {improvement.improved_bullet}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        ))
                       ) : (
-                        <div className="bg-card border rounded-lg p-4">
-                          <pre className="whitespace-pre-wrap text-sm">
+                        <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6">
+                          <pre className="whitespace-pre-wrap text-sm text-slate-400 font-mono">
                             {JSON.stringify(jobDetail.resume_suggestions, null, 2)}
                           </pre>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <FileEdit className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Resume suggestions not generated yet.</p>
-                      <p className="text-sm mt-2">Generate suggestions from the resume improvement section.</p>
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                      <div className="size-16 rounded-3xl bg-white/5 flex items-center justify-center mb-6">
+                        <FileEdit className="h-8 w-8 text-slate-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">Awaiting Optimization</h3>
+                      <p className="text-slate-500 max-w-sm">Sync your resume with this application to see tailored improvements.</p>
                     </div>
                   )}
                 </div>
               )}
-            </>
+            </div>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              Failed to load job details
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <AlertCircle className="h-10 w-10 text-rose-500 mb-4" />
+              <p className="text-slate-400 font-bold">Failed to decrypt application details.</p>
             </div>
           )}
         </div>

@@ -6,6 +6,7 @@ from typing import Optional
 from app.database import get_db
 from app.auth import verify_token
 from app.models import User, UserSettings
+from app.services.llm_service import llm_service
 
 router = APIRouter()
 
@@ -14,6 +15,12 @@ class SettingsUpdate(BaseModel):
     ai_provider: str
     api_key: Optional[str] = None
     model_preference: Optional[str] = None
+
+
+class TestConnectionRequest(BaseModel):
+    ai_provider: str
+    api_key: str
+    model_preference: str
 
 
 class SettingsResponse(BaseModel):
@@ -95,3 +102,59 @@ async def update_settings(
         api_key_masked=masked_key,
         model_preference=settings.model_preference,
     )
+
+
+@router.post("/test")
+async def test_connection(
+    test_request: TestConnectionRequest,
+    current_user: dict = Depends(verify_token),
+):
+    """Test the AI provider connection with the provided credentials."""
+    try:
+        # Test the connection by making a simple API call
+        test_prompt = "Say 'Connection successful' if you can read this."
+        response = await llm_service.generate_text(
+            prompt=test_prompt,
+            system_prompt="You are a helpful assistant.",
+            max_tokens=50,
+            provider=test_request.ai_provider,
+            api_key=test_request.api_key,
+            model=test_request.model_preference,
+        )
+        
+        if response and len(response.strip()) > 0:
+            return {
+                "success": True,
+                "message": "Connection successful! Your API key is working correctly."
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Connection test failed: No response from API"
+            }
+    except ValueError as e:
+        # Missing API key or invalid provider
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        # API error (invalid key, network issue, etc.)
+        error_msg = str(e)
+        if "API key" in error_msg or "authentication" in error_msg.lower() or "unauthorized" in error_msg.lower():
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid API key. Please check your credentials."
+            )
+        elif "rate limit" in error_msg.lower() or "quota" in error_msg.lower():
+            raise HTTPException(
+                status_code=429,
+                detail="Rate limit exceeded. Please try again later."
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Connection failed: {error_msg}"
+            )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error: {str(e)}"
+        )

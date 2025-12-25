@@ -15,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className="h-full font-sans antialiased" style={{ minHeight: '100vh' }}>
+        <div className="nebula-bg" />
         <Providers>{children}</Providers>
       </body>
     </html>

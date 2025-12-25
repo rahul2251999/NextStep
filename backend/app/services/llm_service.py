@@ -78,17 +78,35 @@ class LLMService:
             
             client = OpenAI(api_key=key)
             
-            messages = []
-            if system_prompt:
-                messages.append({"role": "system", "content": system_prompt})
-            messages.append({"role": "user", "content": prompt})
+            model_name = model or "gpt-4-turbo-preview"
             
-            response = client.chat.completions.create(
-                model=model or "gpt-4-turbo-preview",
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=0.7,
-            )
+            # O1 models (o1-preview, o1-mini) have different API - no system prompts, no temperature
+            if model_name.startswith("o1"):
+                # For o1 models, combine system prompt with user prompt if provided
+                full_prompt = prompt
+                if system_prompt:
+                    full_prompt = f"{system_prompt}\n\n{prompt}"
+                
+                messages = [{"role": "user", "content": full_prompt}]
+                
+                response = client.chat.completions.create(
+                    model=model_name,
+                    messages=messages,
+                    # O1 models don't support max_tokens or temperature
+                )
+            else:
+                # Standard GPT models
+                messages = []
+                if system_prompt:
+                    messages.append({"role": "system", "content": system_prompt})
+                messages.append({"role": "user", "content": prompt})
+                
+                response = client.chat.completions.create(
+                    model=model_name,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=0.7,
+                )
             
             return response.choices[0].message.content
         except Exception as e:

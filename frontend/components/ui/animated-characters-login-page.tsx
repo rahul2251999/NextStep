@@ -18,8 +18,8 @@ interface PupilProps {
   forceLookY?: number;
 }
 
-const Pupil = ({ 
-  size = 12, 
+const Pupil = ({
+  size = 12,
   maxDistance = 5,
   pupilColor = "black",
   forceLookX,
@@ -85,9 +85,9 @@ interface EyeBallProps {
   forceLookY?: number;
 }
 
-const EyeBall = ({ 
-  size = 48, 
-  pupilSize = 16, 
+const EyeBall = ({
+  size = 48,
+  pupilSize = 16,
   maxDistance = 10,
   eyeColor = "white",
   pupilColor = "black",
@@ -287,15 +287,15 @@ function LoginPage() {
       } else {
         // Registration flow
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-        
+
         try {
           const response = await fetch(`${API_URL}/api/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-              email: email.trim(), 
-              password, 
-              name: name.trim() || undefined 
+            body: JSON.stringify({
+              email: email.trim(),
+              password,
+              name: name.trim() || undefined
             }),
           });
 
@@ -306,7 +306,7 @@ function LoginPage() {
           }
 
           const data = await response.json();
-          
+
           // After successful registration, automatically log in
           const result = await signIn("credentials", {
             email: email.trim(),
@@ -339,131 +339,137 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
-      <div className="relative hidden lg:flex flex-col justify-between p-12" style={{ 
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
-        color: '#ffffff'
-      }}>
+      <div
+        className="relative hidden lg:flex flex-col justify-between p-12"
+        style={{
+          background: "linear-gradient(135deg, #020617 0%, #020617 100%)",
+          color: "#ffffff",
+        }}
+      >
         <div className="relative z-20">
           <div className="flex items-center gap-2 text-lg font-semibold">
-            <div className="size-8 rounded-lg backdrop-blur-sm flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}>
-              <Sparkles className="size-4" style={{ color: '#ffffff' }} />
+            <div className="size-8 rounded-lg bg-white text-black font-bold text-sm flex items-center justify-center">
+              NS
             </div>
             <span style={{ color: '#ffffff' }}>NextStep</span>
           </div>
         </div>
         <div className="relative z-20 flex items-end justify-center h-[500px]">
-          <div className="relative" style={{ width: '550px', height: '400px' }}>
-            <div 
+            <div className="relative" style={{ width: "550px", height: "400px" }}>
+            <div
               ref={purpleRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
               style={{
                 left: '70px',
                 width: '180px',
-                height: (isTyping || (password.length > 0 && !showPassword)) ? '440px' : '400px',
-                backgroundColor: '#6C3FF5',
+                height: (isTyping || (password.length > 0 && !showPassword)) ? "440px" : "400px",
+                background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)",
                 borderRadius: '10px 10px 0 0',
                 zIndex: 1,
+                boxShadow: '0 10px 40px rgba(139, 92, 246, 0.3)',
                 transform: (password.length > 0 && showPassword)
                   ? `skewX(0deg)`
                   : (isTyping || (password.length > 0 && !showPassword))
-                    ? `skewX(${(purplePos.bodySkew || 0) - 12}deg) translateX(40px)` 
+                    ? `skewX(${(purplePos.bodySkew || 0) - 12}deg) translateX(40px)`
                     : `skewX(${purplePos.bodySkew || 0}deg)`,
                 transformOrigin: 'bottom center',
               }}
             >
-              <div 
+              <div
                 className="absolute flex gap-8 transition-all duration-700 ease-in-out"
                 style={{
                   left: (password.length > 0 && showPassword) ? `${20}px` : isLookingAtEachOther ? `${55}px` : `${45 + purplePos.faceX}px`,
                   top: (password.length > 0 && showPassword) ? `${35}px` : isLookingAtEachOther ? `${65}px` : `${40 + purplePos.faceY}px`,
                 }}
               >
-                <EyeBall 
-                  size={18} 
-                  pupilSize={7} 
-                  maxDistance={5} 
-                  eyeColor="white" 
-                  pupilColor="#2D2D2D" 
+                <EyeBall
+                  size={18}
+                  pupilSize={7}
+                  maxDistance={5}
+                  eyeColor="white"
+                  pupilColor="#2D2D2D"
                   isBlinking={isPurpleBlinking}
                   forceLookX={(password.length > 0 && showPassword) ? (isPurplePeeking ? 4 : -4) : isLookingAtEachOther ? 3 : undefined}
                   forceLookY={(password.length > 0 && showPassword) ? (isPurplePeeking ? 5 : -4) : isLookingAtEachOther ? 4 : undefined}
                 />
-                <EyeBall 
-                  size={18} 
-                  pupilSize={7} 
-                  maxDistance={5} 
-                  eyeColor="white" 
-                  pupilColor="#2D2D2D" 
+                <EyeBall
+                  size={18}
+                  pupilSize={7}
+                  maxDistance={5}
+                  eyeColor="white"
+                  pupilColor="#2D2D2D"
                   isBlinking={isPurpleBlinking}
                   forceLookX={(password.length > 0 && showPassword) ? (isPurplePeeking ? 4 : -4) : isLookingAtEachOther ? 3 : undefined}
                   forceLookY={(password.length > 0 && showPassword) ? (isPurplePeeking ? 5 : -4) : isLookingAtEachOther ? 4 : undefined}
                 />
               </div>
             </div>
-            <div 
+            <div
               ref={blackRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
               style={{
                 left: '240px',
                 width: '120px',
-                height: '310px',
-                backgroundColor: '#2D2D2D',
+                height: "310px",
+                background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)",
                 borderRadius: '8px 8px 0 0',
                 zIndex: 2,
+                boxShadow: '0 10px 40px rgba(59, 130, 246, 0.3)',
                 transform: (password.length > 0 && showPassword)
                   ? `skewX(0deg)`
                   : isLookingAtEachOther
                     ? `skewX(${(blackPos.bodySkew || 0) * 1.5 + 10}deg) translateX(20px)`
                     : (isTyping || (password.length > 0 && !showPassword))
-                      ? `skewX(${(blackPos.bodySkew || 0) * 1.5}deg)` 
+                      ? `skewX(${(blackPos.bodySkew || 0) * 1.5}deg)`
                       : `skewX(${blackPos.bodySkew || 0}deg)`,
                 transformOrigin: 'bottom center',
               }}
             >
-              <div 
+              <div
                 className="absolute flex gap-6 transition-all duration-700 ease-in-out"
                 style={{
                   left: (password.length > 0 && showPassword) ? `${10}px` : isLookingAtEachOther ? `${32}px` : `${26 + blackPos.faceX}px`,
                   top: (password.length > 0 && showPassword) ? `${28}px` : isLookingAtEachOther ? `${12}px` : `${32 + blackPos.faceY}px`,
                 }}
               >
-                <EyeBall 
-                  size={16} 
-                  pupilSize={6} 
-                  maxDistance={4} 
-                  eyeColor="white" 
-                  pupilColor="#2D2D2D" 
+                <EyeBall
+                  size={16}
+                  pupilSize={6}
+                  maxDistance={4}
+                  eyeColor="white"
+                  pupilColor="#2D2D2D"
                   isBlinking={isBlackBlinking}
                   forceLookX={(password.length > 0 && showPassword) ? -4 : isLookingAtEachOther ? 0 : undefined}
                   forceLookY={(password.length > 0 && showPassword) ? -4 : isLookingAtEachOther ? -4 : undefined}
                 />
-                <EyeBall 
-                  size={16} 
-                  pupilSize={6} 
-                  maxDistance={4} 
-                  eyeColor="white" 
-                  pupilColor="#2D2D2D" 
+                <EyeBall
+                  size={16}
+                  pupilSize={6}
+                  maxDistance={4}
+                  eyeColor="white"
+                  pupilColor="#2D2D2D"
                   isBlinking={isBlackBlinking}
                   forceLookX={(password.length > 0 && showPassword) ? -4 : isLookingAtEachOther ? 0 : undefined}
                   forceLookY={(password.length > 0 && showPassword) ? -4 : isLookingAtEachOther ? -4 : undefined}
                 />
               </div>
             </div>
-            <div 
+            <div
               ref={orangeRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
               style={{
                 left: '0px',
                 width: '240px',
-                height: '200px',
+                height: "200px",
                 zIndex: 3,
-                backgroundColor: '#FF9B6B',
+                background: "linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%)",
                 borderRadius: '120px 120px 0 0',
+                boxShadow: '0 10px 40px rgba(249, 115, 22, 0.3)',
                 transform: (password.length > 0 && showPassword) ? `skewX(0deg)` : `skewX(${orangePos.bodySkew || 0}deg)`,
                 transformOrigin: 'bottom center',
               }}
             >
-              <div 
+              <div
                 className="absolute flex gap-8 transition-all duration-200 ease-out"
                 style={{
                   left: (password.length > 0 && showPassword) ? `${50}px` : `${82 + (orangePos.faceX || 0)}px`,
@@ -474,21 +480,22 @@ function LoginPage() {
                 <Pupil size={12} maxDistance={5} pupilColor="#2D2D2D" forceLookX={(password.length > 0 && showPassword) ? -5 : undefined} forceLookY={(password.length > 0 && showPassword) ? -4 : undefined} />
               </div>
             </div>
-            <div 
+            <div
               ref={yellowRef}
               className="absolute bottom-0 transition-all duration-700 ease-in-out"
               style={{
                 left: '310px',
                 width: '140px',
-                height: '230px',
-                backgroundColor: '#E8D754',
+                height: "230px",
+                background: "linear-gradient(135deg, #eab308 0%, #ca8a04 50%, #a16207 100%)",
                 borderRadius: '70px 70px 0 0',
                 zIndex: 4,
+                boxShadow: '0 10px 40px rgba(234, 179, 8, 0.3)',
                 transform: (password.length > 0 && showPassword) ? `skewX(0deg)` : `skewX(${yellowPos.bodySkew || 0}deg)`,
                 transformOrigin: 'bottom center',
               }}
             >
-              <div 
+              <div
                 className="absolute flex gap-6 transition-all duration-200 ease-out"
                 style={{
                   left: (password.length > 0 && showPassword) ? `${20}px` : `${52 + (yellowPos.faceX || 0)}px`,
@@ -498,7 +505,7 @@ function LoginPage() {
                 <Pupil size={12} maxDistance={5} pupilColor="#2D2D2D" forceLookX={(password.length > 0 && showPassword) ? -5 : undefined} forceLookY={(password.length > 0 && showPassword) ? -4 : undefined} />
                 <Pupil size={12} maxDistance={5} pupilColor="#2D2D2D" forceLookX={(password.length > 0 && showPassword) ? -5 : undefined} forceLookY={(password.length > 0 && showPassword) ? -4 : undefined} />
               </div>
-              <div 
+              <div
                 className="absolute w-20 h-[4px] bg-[#2D2D2D] rounded-full transition-all duration-200 ease-out"
                 style={{
                   left: (password.length > 0 && showPassword) ? `${10}px` : `${40 + (yellowPos.faceX || 0)}px`,
@@ -508,33 +515,39 @@ function LoginPage() {
             </div>
           </div>
         </div>
-        <div className="relative z-20 flex items-center gap-8 text-sm" style={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-          <a href="#" className="transition-colors hover:opacity-100" style={{ color: 'rgba(255, 255, 255, 0.6)' }}>Privacy Policy</a>
-          <a href="#" className="transition-colors hover:opacity-100" style={{ color: 'rgba(255, 255, 255, 0.6)' }}>Terms of Service</a>
-          <a href="#" className="transition-colors hover:opacity-100" style={{ color: 'rgba(255, 255, 255, 0.6)' }}>Contact</a>
+        <div className="relative z-20 flex items-center gap-8 text-sm" style={{ color: "rgba(255, 255, 255, 0.6)" }}>
+          <a href="#" className="transition-colors hover:opacity-100" style={{ color: "rgba(255, 255, 255, 0.6)" }}>
+            Privacy Policy
+          </a>
+          <a href="#" className="transition-colors hover:opacity-100" style={{ color: "rgba(255, 255, 255, 0.6)" }}>
+            Terms of Service
+          </a>
+          <a href="#" className="transition-colors hover:opacity-100" style={{ color: "rgba(255, 255, 255, 0.6)" }}>
+            Contact
+          </a>
         </div>
         <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
-        <div className="absolute top-1/4 right-1/4 size-64 bg-primary-foreground/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/4 size-96 bg-primary-foreground/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 right-1/4 size-64 rounded-full bg-white/5 blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/4 size-96 rounded-full bg-white/10 blur-3xl" />
       </div>
-      <div className="flex items-center justify-center p-8" style={{ backgroundColor: '#0a0a0a' }}>
-        <div className="w-full max-w-[420px]">
-          <div className="lg:hidden flex items-center justify-center gap-2 text-lg font-semibold mb-12">
-            <div className="size-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)' }}>
-              <Sparkles className="size-4" style={{ color: '#818cf8' }} />
+      <div className="flex items-center justify-center p-8 bg-transparent">
+        <div className="w-full max-w-[420px] glass p-10 rounded-[2.5rem] border-white/10">
+          <div className="lg:hidden mb-12 flex items-center justify-center gap-2 text-lg font-semibold">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-white text-black">
+              ns
             </div>
-            <span style={{ color: '#fafafa' }}>NextStep</span>
+            <span className="text-white">NextStep</span>
           </div>
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: '#fafafa' }}>
-              {isLogin ? "Welcome back!" : "Create account"}
+            <h1 className="text-3xl font-bold tracking-tight mb-2 text-white">
+              {isLogin ? "Welcome back" : "Create pilot account"}
             </h1>
-            <p className="text-sm" style={{ color: '#a3a3a3' }}>Please enter your details</p>
+            <p className="text-sm text-slate-400">Please enter your credentials</p>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium" style={{ color: '#fafafa' }}>Name</Label>
+                <Label htmlFor="name" className="text-sm font-semibold text-slate-300 ml-1">Name</Label>
                 <Input
                   id="name"
                   type="text"
@@ -542,37 +555,27 @@ function LoginPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required={!isLogin}
-                  className="h-12 rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                  style={{ 
-                    backgroundColor: '#171717', 
-                    borderColor: '#404040',
-                    color: '#fafafa'
-                  }}
+                  className="h-12 rounded-2xl border-white/10 bg-white/5 px-4 text-white focus:ring-white/20"
                 />
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium" style={{ color: '#fafafa' }}>Email</Label>
+              <Label htmlFor="email" className="text-sm font-semibold text-slate-300 ml-1">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="anna@gmail.com"
+                placeholder="anna@example.com"
                 value={email}
                 autoComplete="off"
                 onChange={(e) => setEmail(e.target.value)}
                 onFocus={() => setIsTyping(true)}
                 onBlur={() => setIsTyping(false)}
                 required
-                className="h-12 rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                style={{ 
-                  backgroundColor: '#171717', 
-                  borderColor: '#404040',
-                  color: '#fafafa'
-                }}
+                className="h-12 rounded-2xl border-white/10 bg-white/5 px-4 text-white focus:ring-white/20"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium" style={{ color: '#fafafa' }}>Password</Label>
+              <Label htmlFor="password" className="text-sm font-semibold text-slate-300 ml-1">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -581,82 +584,57 @@ function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="h-12 pr-10 rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                  style={{ 
-                    backgroundColor: '#171717', 
-                    borderColor: '#404040',
-                    color: '#fafafa'
-                  }}
+                  className="h-12 rounded-2xl border-white/10 bg-white/5 px-4 pr-12 text-white focus:ring-white/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                  style={{ color: '#a3a3a3' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#fafafa'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#a3a3a3'}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
                 >
                   {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
                 </button>
               </div>
             </div>
             {isLogin && (
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between px-1">
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="remember" />
-                  <Label htmlFor="remember" className="text-sm font-normal cursor-pointer" style={{ color: '#fafafa' }}>
-                    Remember for 30 days
+                  <Checkbox
+                    id="remember"
+                    className="rounded-md border-white/10 bg-white/5 data-[state=checked]:bg-white data-[state=checked]:text-black"
+                  />
+                  <Label htmlFor="remember" className="text-xs font-medium cursor-pointer text-slate-400">
+                    Stay logged in
                   </Label>
                 </div>
-                <a href="#" className="text-sm hover:underline font-medium transition-colors" style={{ color: '#818cf8' }}>
-                  Forgot password?
+                <a href="#" className="text-xs font-bold text-slate-200 hover:underline">
+                  Forgot?
                 </a>
               </div>
             )}
             {error && (
-              <div className="p-3 text-sm rounded-lg" style={{ 
-                color: '#fca5a5', 
-                backgroundColor: '#7f1d1d', 
-                border: '1px solid #991b1b' 
-              }}>
+              <div className="p-4 text-xs rounded-2xl border border-red-500/20 bg-red-500/5 text-red-500 font-medium text-center">
                 {error}
               </div>
             )}
-            <Button 
-              type="submit" 
-              className="w-full h-12 text-base font-medium transition-all duration-200" 
-              size="lg" 
+            <Button
+              type="submit"
+              className="w-full h-12 text-sm font-bold bg-white text-black hover:scale-[1.02] active:scale-[0.98] transition-all rounded-2xl shadow-xl"
+              size="lg"
               disabled={isLoading}
-              style={{ 
-                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '10px',
-                boxShadow: '0 4px 20px rgba(99, 102, 241, 0.4)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = '0 6px 25px rgba(99, 102, 241, 0.5)'
-                e.currentTarget.style.transform = 'translateY(-1px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = '0 4px 20px rgba(99, 102, 241, 0.4)'
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
             >
-              {isLoading ? (isLogin ? "Signing in..." : "Creating account...") : (isLogin ? "Log in" : "Sign up")}
+              {isLoading ? (isLogin ? "Authenticating..." : "Creating...") : (isLogin ? "Sign In" : "Register Pilot")}
             </Button>
           </form>
-          <div className="text-center text-sm mt-8" style={{ color: '#a3a3a3' }}>
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <div className="text-center text-sm mt-8 text-slate-400">
+            {isLogin ? "New here? " : "Already have an account? "}
             <button
               onClick={() => {
                 setIsLogin(!isLogin);
                 setError("");
               }}
-              className="font-medium hover:underline"
-              style={{ color: '#fafafa' }}
+              className="font-bold text-white hover:underline"
             >
-              {isLogin ? "Sign Up" : "Sign In"}
+              {isLogin ? "Create account" : "Sign in instead"}
             </button>
           </div>
         </div>

@@ -64,10 +64,12 @@ export default function MessageGenerator({
   }
 
   return (
-    <Card className="border" style={{ backgroundColor: '#171717', borderColor: '#262626' }}>
-      <CardHeader style={{ borderBottom: '1px solid #262626' }}>
-        <CardTitle style={{ color: '#fafafa' }}>Recruiter Email</CardTitle>
-        <CardDescription style={{ color: '#a3a3a3' }}>
+    <Card className="border border-border/60 bg-card/80">
+      <CardHeader className="border-b border-border/60 pb-4">
+        <CardTitle className="text-foreground text-lg tracking-tight">
+          Recruiter Email
+        </CardTitle>
+        <CardDescription className="text-muted-foreground text-sm">
           Generate and send a personalized email to recruiters
         </CardDescription>
       </CardHeader>
@@ -93,7 +95,7 @@ export default function MessageGenerator({
             onChange={(e) => setRecipientEmail(e.target.value)}
             placeholder="recruiter@company.com"
           />
-          <p className="text-xs" style={{ color: '#a3a3a3' }}>
+          <p className="text-xs text-muted-foreground">
             Leave empty to only generate message without sending
           </p>
         </div>
@@ -108,14 +110,14 @@ export default function MessageGenerator({
       </div>
 
       {error && (
-        <div className="mt-4 p-4 border rounded-lg" style={{ backgroundColor: '#7f1d1d', borderColor: '#991b1b' }}>
-          <p className="text-sm" style={{ color: '#fca5a5' }}>{error}</p>
+        <div className="mt-4 rounded-2xl border border-destructive/40 bg-destructive/15 px-4 py-3">
+          <p className="text-sm text-destructive-foreground/80">{error}</p>
         </div>
       )}
 
       {emailSent && (
-        <div className="mt-4 p-4 border rounded-lg" style={{ backgroundColor: '#064e3b', borderColor: '#065f46' }}>
-          <p className="text-sm font-semibold" style={{ color: '#6ee7b7' }}>
+        <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3">
+          <p className="text-sm font-semibold text-emerald-100">
             ✓ Email sent successfully to {recipientEmail}
           </p>
         </div>
@@ -124,7 +126,9 @@ export default function MessageGenerator({
       {message && (
         <div className="mt-6">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg font-semibold" style={{ color: '#fafafa' }}>Generated Message</h3>
+            <h3 className="text-lg font-semibold text-foreground">
+              Generated Message
+            </h3>
             <Button
               onClick={copyToClipboard}
               variant="outline"
@@ -133,8 +137,8 @@ export default function MessageGenerator({
               Copy
             </Button>
           </div>
-          <div className="p-4 border rounded-lg" style={{ backgroundColor: '#262626', borderColor: '#404040' }}>
-            <p className="whitespace-pre-wrap" style={{ color: '#fafafa' }}>{message}</p>
+          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+            <p className="whitespace-pre-wrap text-foreground/90">{message}</p>
           </div>
         </div>
       )}

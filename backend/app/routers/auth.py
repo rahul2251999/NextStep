@@ -89,6 +89,7 @@ async def register(
             )
         
         # Create new user
+        print(f"Hashing password of length: {len(user_data.password)}")
         hashed_password = get_password_hash(user_data.password)
         user = User(
             email=user_data.email.strip().lower(),
