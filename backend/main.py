@@ -23,6 +23,7 @@ origins = [
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
+    "https://rahul2251999.github.io",  # GitHub Pages production URL
     os.getenv("FRONTEND_URL", "http://localhost:3000"),
 ]
 
