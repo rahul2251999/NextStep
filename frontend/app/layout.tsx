@@ -5,6 +5,13 @@ import { Providers } from "./providers"
 export const metadata: Metadata = {
   title: "NextStep - AI-Powered Job Search",
   description: "Optimize your resume and land your dream job with AI",
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 }
 
 export default function RootLayout({
